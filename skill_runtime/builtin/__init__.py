@@ -9,6 +9,7 @@ from skill_runtime.builtin.market_discovery import (
     opportunity_discovery_skill,
     project_feasibility_skill,
 )
+from skill_runtime.builtin.market_research_web import market_research_web_skill
 from skill_runtime.builtin.report import report_skill
 from skill_runtime.builtin.search import search_skill
 
@@ -19,6 +20,7 @@ BUILTIN_SKILLS = (
     content_skill,
     ecommerce_publish_skill,
     market_research_skill,
+    market_research_web_skill,
     market_analysis_skill,
     opportunity_discovery_skill,
     project_feasibility_skill,

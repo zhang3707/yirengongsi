@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from skill_runtime.base import SkillContext
@@ -48,7 +50,20 @@ def test_market_research_csv_import():
     assert output["products_count"] == 2
 
 
+AI_COMPANY_LIVE_BROWSER = os.environ.get("AI_COMPANY_LIVE_BROWSER", "").strip() == "1"
+
+
 def test_full_chain_produces_projects(client):
+    """Full chain through the REAL browser-service.
+
+    Requires a running EcomAutopilot daemon with a logged-in platform account.
+    Run with:  AI_COMPANY_LIVE_BROWSER=1 pytest (after `session start` + scan).
+    Without a live session the browser-service answers STEP_FAILED/FATAL
+    (session required) — by design we do NOT stub this; skipped by default.
+    """
+    if not AI_COMPANY_LIVE_BROWSER:
+        pytest.skip("requires AI_COMPANY_LIVE_BROWSER=1 + running daemon session")
+
     # 通过 API 提交真实任务，全链跑通（mock 数据内联）
     rows = [
         {"title": "PPT 模板 合集 商用授权", "price": 29.9, "sales": 1850, "reviews": 860, "category": "虚拟"},
