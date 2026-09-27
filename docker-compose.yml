@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ai_company
+      POSTGRES_PASSWORD: ai_company
+      POSTGRES_DB: ai_company
+    ports: ["5432:5432"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_company"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  temporal:
+    image: temporalio/auto-setup:1.24
+    profiles: ["temporal"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: ai_company
+      POSTGRES_PWD: ai_company
+      POSTGRES_SEEDS: postgres
+    ports: ["7233:7233"]
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg2://ai_company:ai_company@postgres:5432/ai_company
+      REDIS_URL: redis://redis:6379/0
+      TEMPORAL_HOST: temporal:7233
+      STORAGE_PATH: /app/data/storage
+      LOG_DIR: /app/logs
+      AUTO_CREATE_TABLES: "true"
+      SEED_DEMO_DATA: "true"
+    ports: ["8000:8000"]
+    volumes:
+      - api_data:/app/data
+      - api_logs:/app/logs
+
+  workflow-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    profiles: ["temporal"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg2://ai_company:ai_company@postgres:5432/ai_company
+      REDIS_URL: redis://redis:6379/0
+      TEMPORAL_HOST: temporal:7233
+    command: ["python", "-m", "backend.worker"]
+
+volumes:
+  postgres_data:
+  api_data:
+  api_logs:

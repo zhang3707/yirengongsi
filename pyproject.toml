@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-company-mvp"
+version = "1.0.0"
+description = "AI Company MVP v1.0 - Pilot runtime platform (agents, skills, workflows, knowledge)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.5",
+    "SQLAlchemy>=2.0",
+    "alembic>=1.13",
+    "psycopg2-binary>=2.9",
+    "redis>=5.0",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "fakeredis>=2.20",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+include = [
+    "shared*",
+    "backend*",
+    "agent_runtime*",
+    "skill_runtime*",
+    "workflow_engine*",
+    "knowledge_service*",
+    "database*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["console", "data", "logs", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

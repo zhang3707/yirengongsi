@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Company MVP v1.0 · AI Console</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">AI Company <span>MVP v1.0</span></div>
+    <div class="status"><span id="health-dot" class="dot"></span><span id="health-text">检查中…</span></div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>提交任务</h2>
+      <p class="hint">不是聊天：提交任务 → 选择 Agent → 执行 Skill → Workflow 交付结果。</p>
+      <form id="task-form">
+        <label>任务名称<input name="title" required placeholder="分析本周业务数据并生成报告" /></label>
+        <label>目标<textarea name="goal" rows="2" placeholder="发现异常并给出优化建议"></textarea></label>
+        <label>任务类型
+          <select name="task_type">
+            <option value="research">research · 信息研究</option>
+            <option value="analysis" selected>analysis · 分析决策</option>
+            <option value="content">content · 内容生产</option>
+            <option value="workflow">workflow · 流程管理</option>
+            <option value="general">general · 通用</option>
+          </select>
+        </label>
+        <label>优先级
+          <select name="priority">
+            <option value="P2" selected>P2</option>
+            <option value="P1">P1</option>
+            <option value="P0">P0</option>
+            <option value="P3">P3</option>
+          </select>
+        </label>
+        <label>提交人邮箱<input name="user_email" placeholder="pilot@example.com" /></label>
+        <button type="submit">提交并运行</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>任务记录</h2>
+      <div id="task-list" class="list"></div>
+    </section>
+
+    <section class="panel wide">
+      <h2>任务详情</h2>
+      <div id="task-detail" class="detail">提交任务后在此查看 Workflow 步骤与结果。</div>
+    </section>
+
+    <section class="panel">
+      <h2>AI 员工</h2>
+      <div id="agent-list" class="list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Pilot 指标</h2>
+      <div id="metrics" class="metrics">加载中…</div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
