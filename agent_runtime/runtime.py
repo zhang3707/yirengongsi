@@ -25,6 +25,7 @@ TASK_TYPE_SKILL_CHAIN: dict[str, list[str]] = {
     "content": ["content", "report"],
     "workflow": ["analysis", "report"],
     "general": ["analysis", "report"],
+    "ecommerce_publish": ["ecommerce_publish", "report"],
 }
 
 

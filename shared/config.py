@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     model_api_key: str = ""
     model_timeout_seconds: int = 120
 
+    # EcomAutopilot (browser-service) integration
+    ecom_autopilot_base_url: str = "http://127.0.0.1:8787"
+    ecom_autopilot_token: str = "dev-token"
+    ecom_autopilot_timeout_seconds: int = 180
+
     api_auth_token: str = ""
     api_auth_enabled: bool = False
     workspace_name: str = "default"
