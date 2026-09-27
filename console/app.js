@@ -1,10 +1,40 @@
 const API = "/api/v1";
 
+const TOKEN_KEY = "ai_company_api_token";
+
+function getToken() {
+  return localStorage.getItem(TOKEN_KEY) || "";
+}
+
+function requestHeaders() {
+  const headers = { "Content-Type": "application/json" };
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+    headers["X-API-Token"] = token;
+  }
+  return headers;
+}
+
 async function api(path, options = {}) {
-  const response = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json" },
+  let response = await fetch(`${API}${path}`, {
+    headers: requestHeaders(),
     ...options,
   });
+  if (response.status === 401 && getToken()) {
+    // token 可能过期/错误：提示用户重新输入而不是静默失败
+    const retry = confirm("当前 API Token 无效（401）。点击确认后重新输入。");
+    if (retry) {
+      const next = prompt("请输入 API Token：", "");
+      if (next !== null) {
+        localStorage.setItem(TOKEN_KEY, next.trim());
+        response = await fetch(`${API}${path}`, {
+          headers: requestHeaders(),
+          ...options,
+        });
+      }
+    }
+  }
   if (!response.ok) {
     const detail = await response.text();
     throw new Error(`${response.status} ${detail}`);
@@ -156,7 +186,28 @@ document.getElementById("task-form").addEventListener("submit", async (event) =>
   }
 });
 
+function initTokenUI() {
+  const input = document.getElementById("api-token");
+  const save = document.getElementById("token-save");
+  const clear = document.getElementById("token-clear");
+  input.value = getToken();
+  save.addEventListener("click", async () => {
+    localStorage.setItem(TOKEN_KEY, input.value.trim());
+    await loadHealth();
+    await Promise.all([loadAgents(), loadTasks(), loadMetrics()]);
+    alert(input.value.trim() ? "Token 已保存，接口已带认证。" : "已改为匿名访问。");
+  });
+  clear.addEventListener("click", async () => {
+    localStorage.removeItem(TOKEN_KEY);
+    input.value = "";
+    await loadHealth();
+    await Promise.all([loadAgents(), loadTasks(), loadMetrics()]);
+    alert("已清除 Token，接口改为匿名访问。");
+  });
+}
+
 (async function init() {
+  initTokenUI();
   await loadHealth();
   await Promise.all([loadAgents(), loadTasks(), loadMetrics()]);
   setInterval(loadHealth, 30000);

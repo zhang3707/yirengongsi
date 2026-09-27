@@ -20,6 +20,8 @@ os.environ["AUTO_CREATE_TABLES"] = "true"
 os.environ["SEED_DEMO_DATA"] = "true"
 os.environ["LOG_DIR"] = str(Path(_TMP_DIR, "logs"))
 os.environ["STORAGE_PATH"] = str(Path(_TMP_DIR, "storage"))
+# Tests must never hit a real model server (costs tokens and time).
+os.environ["MODEL_PROVIDER"] = "mock"
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

@@ -9,7 +9,14 @@
 <body>
   <header class="topbar">
     <div class="brand">AI Company <span>MVP v1.0</span></div>
-    <div class="status"><span id="health-dot" class="dot"></span><span id="health-text">检查中…</span></div>
+    <div class="status"><span id="health-dot" class="dot"></span><span id="health-text" class="health-text">检查中…</span></div>
+    <div class="token-box">
+      <label class="token-label" for="api-token">API Token</label>
+      <input id="api-token" type="password" placeholder="留空 = 不使用认证"
+             autocomplete="off" spellcheck="false" />
+      <button id="token-save" type="button" class="ghost">保存</button>
+      <button id="token-clear" type="button" class="ghost">清除</button>
+    </div>
   </header>
 
   <main class="layout">
