@@ -15,3 +15,9 @@ build/
 *.sqlite3
 .DS_Store
 node_modules/
+
+# T-113a: 外部研究项目（不提交）
+research/
+
+# 运行时数据（不提交）
+data_*.json

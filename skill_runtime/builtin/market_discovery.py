@@ -19,6 +19,8 @@ from typing import Any
 
 from shared.logging import get_logger
 from skill_runtime.base import SkillContext, SkillDefinition
+# T-113a: 多源数据采集支持
+from skill_runtime.builtin.market_evidence import get_registry, evidences_to_rows, DataSourceError
 
 logger = get_logger("skill")
 
@@ -27,6 +29,31 @@ NUMERIC_FIELDS = ("price", "sales", "reviews")
 
 
 def _rows_from_inputs(inputs: dict[str, Any]) -> list[dict[str, Any]]:
+    # T-113a: 多源采集
+    sources = inputs.get("sources")
+    if sources and isinstance(sources, list):
+        import asyncio
+        keyword = inputs.get("keyword", "")
+        if not keyword:
+            raise ValueError("keyword is required when using sources")
+        
+        registry = get_registry()
+        limit = inputs.get("limit", 50)
+        category = inputs.get("category")
+        
+        # 运行异步采集
+        loop = asyncio.get_event_loop()
+        evidences, errors = loop.run_until_complete(
+            registry.fetch_all(sources, keyword=keyword, category=category, limit=limit, **inputs)
+        )
+        
+        if not evidences and errors:
+            # 所有数据源都失败了
+            error_summary = "; ".join([f"{e['source']}: {e['code']}" for e in errors])
+            raise ValueError(f"All data sources failed: {error_summary}")
+        
+        return evidences_to_rows(evidences)
+    
     products = inputs.get("products")
     if isinstance(products, list) and products:
         return [row for row in products if isinstance(row, dict)]
@@ -230,9 +257,15 @@ def _project_feasibility(context: SkillContext, inputs: dict[str, Any]) -> dict[
 market_research_skill = SkillDefinition(
     name="market_research",
     category="market",
-    description="导入市场数据（JSON/CSV），标准化为统一 rows；素材为空时显式失败。",
+    description=(
+        "导入市场数据（JSON/CSV）或从多源采集（sources 参数），标准化为统一 rows；"
+        "素材为空时显式失败。"
+    ),
     handler=_market_research,
-    input_schema={"products": "array?", "csv": "string?", "json": "string?"},
+    input_schema={
+        "products": "array?", "csv": "string?", "json": "string?",
+        "sources": "array?", "keyword": "string?", "category": "string?", "limit": "integer?"
+    },
     output_schema={"products_count": "integer", "rows": "array"},
 )
 
