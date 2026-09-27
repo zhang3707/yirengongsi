@@ -1,5 +1,8 @@
 # TASKS.md — 任务交接与状态机
 
+> **当前阶段（2026-09-27 起）**：Local MVP → 本地真实业务闭环验证 → 收集问题 → 再决定升级。
+> 冻结：多租户 / JWT / 注册 / 计费 / 分发 / SLA / 商业化认证。详见 AGENTS.md §2。
+
 状态枚举（固定，不得改动）：`pending` | `in_progress` | `done` | `blocked`
 
 图例：`[ ]` pending ・ `[~]` in_progress ・ `[x]` done ・ `[!]` blocked
@@ -82,4 +85,5 @@
 | 2026-09-27 | 初始框架落地 | T-001 ~ T-008 完成，测试全绿 |
 | 2026-09-27 | 收尾验证 | 真实 HTTP 端到端验证通过；清理临时数据库文件；README 补充脚本用法 |
 | 2026-09-27 | 迁移与审计 |
-| 2026-09-27 | 模型层+认证 | shared/model_provider.py + backend/api/auth.py；业务路由 401 保护可测 | 代码同步至 E:\yirengongsi；输出 CODEBASE_STATUS.md（交接文档 §8 要求） |
+| 2026-09-27 | 模型层+认证 |
+| 2026-09-27 | 阶段收紧 | 定义 Local MVP 阶段 + 冻结清单（多租户/JWT/计费等） | shared/model_provider.py + backend/api/auth.py；业务路由 401 保护可测 | 代码同步至 E:\yirengongsi；输出 CODEBASE_STATUS.md（交接文档 §8 要求） |

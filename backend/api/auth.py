@@ -1,8 +1,9 @@
-"""Minimal single-tenant API authentication.
+"""Minimal single-tenant API authentication (Local MVP — see AGENTS.md §2).
 
-Token auth is OFF by default. Set `API_AUTH_TOKEN` (and optionally `API_AUTH_ENABLED=true`)
-to protect all business routes; `/health`, `/console/`, OpenAPI docs and `GET /api/v1/workflows`
-remain public because they expose no business data and the Console needs them to boot.
+Phase=Local MVP: 保持默认关闭。这个 token 只用来满足"本地或内网很快能开认证"的
+一致性，不引入用户/租户/注册/计费/多租户等冻结项。
+若 `API_AUTH_TOKEN` 非空（或 `API_AUTH_ENABLED=true`）则保护业务路由；
+`/health`、`/console/`、`/docs` 与 `GET /api/v1/workflows` 公开。
 """
 
 from __future__ import annotations
