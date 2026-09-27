@@ -58,7 +58,7 @@
       Bearer/X-API-Token 保护 7 组业务路由（health/console/docs 公开）
       验证：pytest 23 通过（新增 6 项），ruff 未跑### 待办（Pilot 运行期，按文档优先级）
 
-- [ ] **T-110 [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数**
+- [x] **T-110 [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数**
       owner: Codex ｜ 优先级: 关键（阻塞阶段目标 1「本机真实提交真实业务任务」）
       现状:
         - API 端 ecommerce_publish 技能已接入 EcomAutopilot browser-service（HTTP /publish/*）
@@ -100,4 +100,5 @@
 | 2026-09-27 | 迁移与审计 | 代码同步至 E:\yirengongsi；输出 CODEBASE_STATUS.md（交接文档 §8 要求） |
 | 2026-09-27 | 模型层+认证 | shared/model_provider.py + backend/api/auth.py；业务路由 401 保护可测 |
 | 2026-09-27 | 阶段收紧 | 定义 Local MVP 阶段 + 冻结清单（多租户/JWT/计费等） |
-| 2026-09-27 | T-110 建 issue | [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数（product_dir/dry_run 等） |
+| 2026-09-27 | T-110 建 issue |
+| 2026-09-27 | T-110 完成 | 控制台表单加入 product_dir / mode / account / dry_run 4 字段（policy_approval 留 API 层，守住安全） commit 91c03f2 | [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数（product_dir/dry_run 等） |
