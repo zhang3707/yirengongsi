@@ -89,7 +89,12 @@ class WorkflowEngine:
                     break
                 except Exception as exc:  # noqa: BLE001 - recorded, then retried or failed
                     attempts += 1
-                    can_retry = step_name == definition.retry_step and attempts <= self.max_retries
+                    # Risk-governance codes must NOT be retried (avoid retry storm).
+                    code = getattr(exc, "code", None) or ""
+                    if code in {"ANTIBOT_BLOCKED", "LOGIN_REQUIRED", "EMPTY_PAGE", "SERVICE_UNAVAILABLE"}:
+                        can_retry = False
+                    else:
+                        can_retry = step_name == definition.retry_step and attempts <= self.max_retries
                     record_event(
                         self.db,
                         "workflow.step_failed",

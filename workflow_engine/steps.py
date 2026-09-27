@@ -64,6 +64,30 @@ def agent_select(ctx: RunContext) -> dict[str, Any]:
     }
 
 
+def _merge_step_output(
+    current: dict[str, Any], output: dict[str, Any], default_material: Any
+) -> dict[str, Any]:
+    """Merge a skill's output into the run context safely.
+
+    Generic merging (spread) lets array-typed keys (e.g. `analysis: [dict]`)
+    overwrite structured payloads produced by earlier skills (e.g.
+    `analysis: dict`). Preserve object-typed values for known analytical keys
+    so multi-skill data chains stay intact.
+    """
+    merged: dict[str, Any] = {**current}
+    for key, value in output.items():
+        if key in {"analysis", "rows", "candidates", "findings"} and isinstance(value, list):
+            structured = [item for item in value if isinstance(item, dict)]
+            if key in merged and isinstance(merged[key], (dict, list)) and merged[key]:
+                continue  # keep earlier structured payload
+            if structured:
+                merged[key] = structured[-1]
+                continue
+        merged[key] = value
+    merged["material"] = output.get("sources", default_material)
+    return merged
+
+
 def skill_execute(ctx: RunContext) -> dict[str, Any]:
     agent = ctx.payload.get("agent")
     chain: list[str] = ctx.payload.get("skill_chain") or []
@@ -100,7 +124,7 @@ def skill_execute(ctx: RunContext) -> dict[str, Any]:
             message=skill_name,
             context={"task_id": ctx.task.id, "skill": skill_name, "duration_ms": duration_ms},
         )
-        current_inputs = {**current_inputs, **output, "material": output.get("sources", material)}
+        current_inputs = _merge_step_output(current_inputs, output, material)
 
     ctx.payload["skill_outputs"] = outputs
     ctx.payload["knowledge_refs"] = [entry.id for entry in knowledge]

@@ -1,0 +1,85 @@
+{
+  "id": "task_9c32331308e2",
+  "title": "淘宝 PPT模板 市场真实发现（T-112 全链）",
+  "goal": "Agent 自主采集淘宝 PPT模板 搜索页市场数据并产出候选项目",
+  "task_type": "market_research",
+  "status": "failed",
+  "priority": "P2",
+  "assigned_agent_id": "agt_03b401b5b758",
+  "workspace": "default",
+  "result": null,
+  "error": "skill 'market_research_web' failed: ANTIBOT_BLOCKED at round 1: 'PPT模板' collect stopped (no retry, no fabrication)",
+  "duration_ms": null,
+  "created_at": "2026-09-27T14:49:25.462429",
+  "completed_at": "2026-09-27T14:49:56.937833",
+  "runs": [
+    {
+      "id": "wfr_962db3adfd61",
+      "task_id": "task_9c32331308e2",
+      "workflow": "default",
+      "status": "failed",
+      "current_step": "skill_execute",
+      "steps": [
+        {
+          "name": "task_receive",
+          "status": "succeeded",
+          "started_at": "2026-09-27T14:49:25.496078+00:00",
+          "finished_at": "2026-09-27T14:49:25.515648+00:00",
+          "detail": {
+            "task_id": "task_9c32331308e2",
+            "task_type": "market_research"
+          },
+          "error": null
+        },
+        {
+          "name": "agent_select",
+          "status": "succeeded",
+          "started_at": "2026-09-27T14:49:25.520166+00:00",
+          "finished_at": "2026-09-27T14:49:25.534011+00:00",
+          "detail": {
+            "agent_id": "agt_03b401b5b758",
+            "agent_name": "Market Discovery Agent",
+            "reason": "domain=market_research matches task_type=market_research",
+            "skill_chain": [
+              "market_research_web",
+              "market_analysis",
+              "opportunity_discovery",
+              "project_feasibility",
+              "report",
+              "market_research"
+            ]
+          },
+          "error": null
+        },
+        {
+          "name": "skill_execute",
+          "status": "failed",
+          "started_at": "2026-09-27T14:49:25.541554+00:00",
+          "finished_at": "2026-09-27T14:49:56.937795+00:00",
+          "detail": {},
+          "error": "skill 'market_research_web' failed: ANTIBOT_BLOCKED at round 1: 'PPT模板' collect stopped (no retry, no fabrication)"
+        },
+        {
+          "name": "result_generate",
+          "status": "pending",
+          "started_at": null,
+          "finished_at": null,
+          "detail": {},
+          "error": null
+        },
+        {
+          "name": "save_record",
+          "status": "pending",
+          "started_at": null,
+          "finished_at": null,
+          "detail": {},
+          "error": null
+        }
+      ],
+      "retries": 2,
+      "error": "skill 'market_research_web' failed: ANTIBOT_BLOCKED at round 1: 'PPT模板' collect stopped (no retry, no fabrication)",
+      "started_at": "2026-09-27T14:49:25.480408",
+      "finished_at": "2026-09-27T14:49:56.937833"
+    }
+  ]
+}

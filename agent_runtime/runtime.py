@@ -74,6 +74,9 @@ class AgentRuntime:
         else:
             ordered = [skill for skill in preferred if skill in declared]
             extra = [skill for skill in declared if skill not in preferred]
+            # Extra (non-chain) declared skills run AFTER the preferred chain;
+            # never interleave them into the critical path (default workflow
+            # preserves the documented step order).
             chain = ordered + extra
 
         unknown = [skill for skill in chain if not skill_registry.has(skill)]

@@ -66,6 +66,12 @@
       首个能力落地：T-111 V1 导入数据链 + T-113 V1 Agent 自主采集链
       (`market_research_web`，只读 observe/scroll，严格不编造)。 commit 0bb9f69
 
+
+- [x] **T-113 V2 风控治理（快失败 + 无重试 + 证据保留）** commit 待填
+      owner: Codex ｜ 2026-09-27 22:49 实测：
+      任务 `task_9c32331308e2` 在淘宝真实遇风控 → **首轮即显式失败**
+      （ANTIBOT_BLOCKED，不进 retry、不伪造数据） —
+      工程验证成功：采集器能识别风控并安全停止。
 - [ ] **T-112 [待真跑] 真实会话跑通第一单 Agent 自主采集**
       owner: 用户 ｜ 前置：EcomAutopilot daemon 会话开启 + 平台登录态
       准备（在 E:\EcomAutopilot\browser-service）：
