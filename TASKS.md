@@ -1,6 +1,6 @@
 # TASKS.md — 任务交接与状态机
 
-> **当前阶段（2026-09-27 起）**：Local MVP → 本地真实业务闭环验证 → 收集问题 → 再决定升级。
+> **阶段（2026-09-27 起）**：✅ Local MVP 开发收口 → 🚀 **自主运行与问题收集**（让系统自己干活，看它在哪出问题）→ 再决定升级。
 > 冻结：多租户 / JWT / 注册 / 计费 / 分发 / SLA / 商业化认证。详见 AGENTS.md §2。
 
 状态枚举（固定，不得改动）：`pending` | `in_progress` | `done` | `blocked`
@@ -56,9 +56,16 @@
       产出：`shared/model_provider.py`（mock / openai-compatible）；4 个技能改为
       模型驱动（mock 模式回落原模板保持测试兼容）；`backend/api/auth.py` 单租户
       Bearer/X-API-Token 保护 7 组业务路由（health/console/docs 公开）
-      验证：pytest 23 通过（新增 6 项），ruff 未跑### 待办（Pilot 运行期，按文档优先级）
+      验证：pytest 23 通过（新增 6 项），ruff 未跑### 新阶段：自运行 + 问题收集（2026-09-27）
 
 - [x] **T-110 [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数**
+      4 字段（product_dir / mode / account / dry_run）已进表单（21c03f2）；
+      T-110 已标记完成；policy_approval 仍留 API 层。
+
+- [ ] **T-111 [新阶段 · 开放问题池] 让系统自己执行真实业务任务并记录每次问题**
+      owner: <未定> ｜ 状态: pending
+      阶段指令: 优先**运行**并**记录**，不新增架构或新功能
+      验收: 持续产出的运行结果 + 明确问题清单（AI 质量 / 耗时 / 失败 / 缺料等）
       owner: Codex ｜ 优先级: 关键（阻塞阶段目标 1「本机真实提交真实业务任务」）
       现状:
         - API 端 ecommerce_publish 技能已接入 EcomAutopilot browser-service（HTTP /publish/*）
@@ -101,4 +108,5 @@
 | 2026-09-27 | 模型层+认证 | shared/model_provider.py + backend/api/auth.py；业务路由 401 保护可测 |
 | 2026-09-27 | 阶段收紧 | 定义 Local MVP 阶段 + 冻结清单（多租户/JWT/计费等） |
 | 2026-09-27 | T-110 建 issue |
-| 2026-09-27 | T-110 完成 | 控制台表单加入 product_dir / mode / account / dry_run 4 字段（policy_approval 留 API 层，守住安全） commit 91c03f2 | [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数（product_dir/dry_run 等） |
+| 2026-09-27 | T-110 完成 | 控制台表单加入 product_dir / mode / account / dry_run 4 字段（policy_approval 留 API 层，守住安全） commit 91c03f2 |
+| 2026-09-27 | **Local MVP 收口** | 阶段目标 1-4 全部达成；新阶段：让系统自己干活 + 收问题（不开发新功能） | [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数（product_dir/dry_run 等） |
