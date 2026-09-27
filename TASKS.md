@@ -58,6 +58,19 @@
       Bearer/X-API-Token 保护 7 组业务路由（health/console/docs 公开）
       验证：pytest 23 通过（新增 6 项），ruff 未跑### 待办（Pilot 运行期，按文档优先级）
 
+- [ ] **T-110 [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数**
+      owner: Codex ｜ 优先级: 关键（阻塞阶段目标 1「本机真实提交真实业务任务」）
+      现状:
+        - API 端 ecommerce_publish 技能已接入 EcomAutopilot browser-service（HTTP /publish/*）
+        - 控制台"任务提交表单"目前仅暴露 title/goal/task_type/priority/user_email
+        - input_payload 所需的 product_dir / mode / account / dry_run / policy_approval 全部
+          无法在控制台输入；用户只能用 curl / HTTP 客户端手工调 API
+      影响: 阻碍 Local MVP 阶段目标 1 —— "本机真实提交真实业务任务（非演示模板）"
+      需要: 控制台表单增加4 个输入字段（product_dir 必填，mode/account/dry_run 可选，
+          dry_run 默认 True; policy_approval 暂不暴露 UI —— 真实发布仍用 curl/API，先守住安全）
+      验收: 用户能在控制台提交一个 DJ-YYYY-XXX 商品目录，五步 workflow 全 succeeded，
+          任务详情能看到 build/validate/run 状态树，且 dry_run=true 时永不真跑 browser
+
 - [ ] **T-101 真实用户接入与首批任务执行**
       owner: Pilot 管理员 ｜ 目标：5-10 名用户、3-5 个场景、30 天
       验收：`/api/v1/metrics/pilot` 有真实评价数据（评价数 ≥ 10）
@@ -84,6 +97,7 @@
 |---|---|---|
 | 2026-09-27 | 初始框架落地 | T-001 ~ T-008 完成，测试全绿 |
 | 2026-09-27 | 收尾验证 | 真实 HTTP 端到端验证通过；清理临时数据库文件；README 补充脚本用法 |
-| 2026-09-27 | 迁移与审计 |
-| 2026-09-27 | 模型层+认证 |
-| 2026-09-27 | 阶段收紧 | 定义 Local MVP 阶段 + 冻结清单（多租户/JWT/计费等） | shared/model_provider.py + backend/api/auth.py；业务路由 401 保护可测 | 代码同步至 E:\yirengongsi；输出 CODEBASE_STATUS.md（交接文档 §8 要求） |
+| 2026-09-27 | 迁移与审计 | 代码同步至 E:\yirengongsi；输出 CODEBASE_STATUS.md（交接文档 §8 要求） |
+| 2026-09-27 | 模型层+认证 | shared/model_provider.py + backend/api/auth.py；业务路由 401 保护可测 |
+| 2026-09-27 | 阶段收紧 | 定义 Local MVP 阶段 + 冻结清单（多租户/JWT/计费等） |
+| 2026-09-27 | T-110 建 issue | [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数（product_dir/dry_run 等） |
