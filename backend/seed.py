@@ -13,6 +13,13 @@ logger = get_logger("system")
 
 AGENTS = [
     {
+        "name": "Market Discovery Agent",
+        "role": "负责市场数据研究与候选项目发现",
+        "description": "导入市场数据 → 分析 → 筛选候选项目 → 生成项目卡片（T-111 V1）。",
+        "domain": "market_research",
+        "skills": ["market_research", "market_analysis", "opportunity_discovery", "project_feasibility", "report"],
+    },
+    {
         "name": "Research Agent",
         "role": "负责信息分析",
         "description": "负责收集和整理信息，输出可复核的资料线索。",

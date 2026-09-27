@@ -26,6 +26,13 @@ TASK_TYPE_SKILL_CHAIN: dict[str, list[str]] = {
     "workflow": ["analysis", "report"],
     "general": ["analysis", "report"],
     "ecommerce_publish": ["ecommerce_publish", "report"],
+    "market_research": [
+        "market_research",
+        "market_analysis",
+        "opportunity_discovery",
+        "project_feasibility",
+        "report",
+    ],
 }
 
 
