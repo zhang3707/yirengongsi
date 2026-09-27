@@ -45,6 +45,23 @@
           </select>
         </label>
         <label>提交人邮箱<input name="user_email" placeholder="pilot@example.com" /></label>
+
+        <!-- ecommerce_publish 专用字段（task_type=ecommerce_publish 时显示） -->
+        <div id="ecom-fields" class="ecom-fields" style="display:none;">
+          <label>商品目录<input name="product_dir" placeholder="products/DJ-2026-001"
+                                autocomplete="off" /></label>
+          <label>发布模式
+            <select name="mode">
+              <option value="draft" selected>draft</option>
+              <option value="publish">publish</option>
+            </select>
+          </label>
+          <label>商家账号<input name="account" value="default" autocomplete="off" /></label>
+          <label class="inline">
+            <input type="checkbox" name="dry_run" checked /> 干跑（不真跑浏览器）
+          </label>
+          <p class="muted">干跑默认勾选。取消勾选且真实发布需另行通过 API / curl 传入 policy_approval。</p>
+        </div>
         <button type="submit">提交并运行</button>
       </form>
     </section>

@@ -89,3 +89,10 @@ pre.result { background: #0e1216; border: 1px solid var(--border); border-radius
 .health-text {
   font-size: 12.5px; white-space: nowrap;
 }
+/* ---------- ecom publish fields ---------- */
+.ecom-fields {
+  border: 1px dashed var(--border); border-radius: 8px;
+  padding: 10px; display: grid; gap: 10px;
+}
+.ecom-fields label.inline { display: flex; align-items: center; gap: 6px; }
+.ecom-fields input[type=checkbox] { width: auto; }

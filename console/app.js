@@ -159,6 +159,16 @@ async function loadMetrics() {
     .join("");
 }
 
+const taskTypeSelect = document.querySelector('select[name="task_type"]');
+const ecomFields = document.getElementById("ecom-fields");
+
+function updateEcomVisibility() {
+  ecomFields.style.display = taskTypeSelect.value === "ecommerce_publish" ? "" : "none";
+}
+
+taskTypeSelect.addEventListener("change", updateEcomVisibility);
+updateEcomVisibility();
+
 document.getElementById("task-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(event.target);
@@ -170,6 +180,18 @@ document.getElementById("task-form").addEventListener("submit", async (event) =>
     user_email: form.get("user_email") || null,
     auto_run: true,
   };
+
+  if (taskTypeSelect.value === "ecommerce_publish") {
+    const pdir = (form.get("product_dir") || "").trim();
+    const mode = form.get("mode") || "draft";
+    const acct = (form.get("account") || "").trim() || "default";
+    const dry_run = form.get("dry_run") === "on";
+    if (!pdir) {
+      alert("ecommerce_publish 必须填商品目录，例如 products/DJ-2026-001");
+      return;
+    }
+    payload.input_payload = { product_dir: pdir, mode: mode, account: acct, dry_run: dry_run };
+  }
   const button = event.target.querySelector("button[type=submit]");
   button.disabled = true;
   button.textContent = "运行中…";
