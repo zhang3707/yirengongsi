@@ -72,7 +72,42 @@
       任务 `task_9c32331308e2` 在淘宝真实遇风控 → **首轮即显式失败**
       （ANTIBOT_BLOCKED，不进 retry、不伪造数据） —
       工程验证成功：采集器能识别风控并安全停止。
-- [ ] **T-112 [待真跑] 真实会话跑通第一单 Agent 自主采集**
+- [~] **T-112 [进行中] 真实会话跑通第一单 Agent 自主采集**
+      owner: Codex ｜ 状态: in_progress ｜ since: 2026-09-28
+
+      ### 已打通（今晚验证）
+      - Agent 真实浏览器采集链路：淘宝首页 → 搜索框 fill → 搜索钮 click →
+        真实商品数据（`s.taobao.com/search` 结果页可见 `人付款` 数据）✅
+      - 五步 Workflow 完整 5/5 succeeded（task_dc2143c5ee04，566s）✅
+      - 风控治理实测通过：ANTIBOT_BLOCKED 快失败 / COMMAND_TIMEOUT 不重试 ✅
+      - 修复真实 bug：
+        1) `_merge_step_output` 对 `rows` 的 dict-squash（已改为保留 list）
+        2) `wait_for` 与 rounds 冲突（移除，observe 自带 settle_ms）
+        3) `COMMAND_TIMEOUT` 加入跳过重试白名单
+
+      ### 下一轮第一件事（明天从这一行开始）
+      - [ ] **[阻塞点] 采集 → 分析 → 报告的 findings/sources 传递管道断点**
+        现象：`task_dc2143c5ee04` 收到 22 条真实 rows 并 success，
+        但最终 `report` 技能收到的 `findings`/`risks`/`sources` 为空 →
+        报告内容为"空证据说明"而非真实市场分析。
+        定位猜测（一行 diff 即可）：
+          `workflow_engine/steps.py::result_generate` 期望的
+          findings 来源 key（`analysis.findings`）与 web/analysis 实际
+          输出形态（`analysis[0].findings` 等）不对齐；
+          或 merge 顺序里 analysis 的 findings 被上游 output 顶掉。
+        修法：核对一次 steps.py 的 merge + result_generate 的取值，
+        确保：web.rows → analysis.findings → report(findings, sources)。
+        验证：重跑一单 pages=2 任务，报告应含真实候选商品、真实价格带。
+
+      ### 备忘（真实环境坑，做了才碰）
+      - 淘宝对自动 deny 依赖会话 freshness（manual-search has confirmed
+        login state is fine）。「点我反馈」的解封路径保留为人工兜底。
+      - operator 短 action id 每页都轮换，**每次 fill/click 前都要重新 observe**
+        (`ACTION_ID_NOT_FOUND_NEED_OBSERVE`)。
+      - browser-service 对 act 有 45s 硬超时；不要为「礼貌间隔」额外调
+        wait_for（observe 的 settle_ms 已经足够）。
+
+
       owner: 用户 ｜ 前置：EcomAutopilot daemon 会话开启 + 平台登录态
       准备（在 E:\EcomAutopilot\browser-service）：
         node server.mjs（若未在运行）+ session start --account default + 扫码

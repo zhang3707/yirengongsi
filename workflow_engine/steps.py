@@ -76,13 +76,9 @@ def _merge_step_output(
     """
     merged: dict[str, Any] = {**current}
     for key, value in output.items():
-        if key in {"analysis", "rows", "candidates", "findings"} and isinstance(value, list):
-            structured = [item for item in value if isinstance(item, dict)]
-            if key in merged and isinstance(merged[key], (dict, list)) and merged[key]:
-                continue  # keep earlier structured payload
-            if structured:
-                merged[key] = structured[-1]
-                continue
+        # Preserve structured lists verbatim; analysis dicts are tracked via
+        # their scalar keys (demand_score / competition_score / ...), so there
+        # is no upstream conflict to resolves here.
         merged[key] = value
     merged["material"] = output.get("sources", default_material)
     return merged
