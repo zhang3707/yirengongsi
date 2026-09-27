@@ -62,7 +62,16 @@
       4 字段（product_dir / mode / account / dry_run）已进表单（21c03f2）；
       T-110 已标记完成；policy_approval 仍留 API 层。
 
-- [ ] **T-111 [新阶段 · 开放问题池] 让系统自己执行真实业务任务并记录每次问题**
+- [x] **T-111 [新阶段 · 开放问题池] 让系统自己执行真实业务任务并记录每次问题**
+      首个能力落地：T-111 V1 导入数据链 + T-113 V1 Agent 自主采集链
+      (`market_research_web`，只读 observe/scroll，严格不编造)。 commit 0bb9f69
+
+- [ ] **T-112 [待真跑] 真实会话跑通第一单 Agent 自主采集**
+      owner: 用户 ｜ 前置：EcomAutopilot daemon 会话开启 + 平台登录态
+      准备（在 E:\EcomAutopilot\browser-service）：
+        node server.mjs（若未在运行）+ session start --account default + 扫码
+      验证：API 提交 task_type=market_research + input_payload {platform:taobao, keyword:"PPT模板", pages:3}
+      或：AI_COMPANY_LIVE_BROWSER=1 pytest tests/test_market_discovery.py
       owner: <未定> ｜ 状态: pending
       阶段指令: 优先**运行**并**记录**，不新增架构或新功能
       验收: 持续产出的运行结果 + 明确问题清单（AI 质量 / 耗时 / 失败 / 缺料等）
@@ -109,4 +118,5 @@
 | 2026-09-27 | 阶段收紧 | 定义 Local MVP 阶段 + 冻结清单（多租户/JWT/计费等） |
 | 2026-09-27 | T-110 建 issue |
 | 2026-09-27 | T-110 完成 | 控制台表单加入 product_dir / mode / account / dry_run 4 字段（policy_approval 留 API 层，守住安全） commit 91c03f2 |
-| 2026-09-27 | **Local MVP 收口** | 阶段目标 1-4 全部达成；新阶段：让系统自己干活 + 收问题（不开发新功能） | [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数（product_dir/dry_run 等） |
+| 2026-09-27 | **Local MVP 收口** |
+| 2026-09-27 | **T-113 V1 落地** | Agent 自主采集链 market_research_web（只读+失败语义）；commit 0bb9f69 | 阶段目标 1-4 全部达成；新阶段：让系统自己干活 + 收问题（不开发新功能） | [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数（product_dir/dry_run 等） |
