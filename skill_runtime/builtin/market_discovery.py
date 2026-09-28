@@ -43,8 +43,9 @@ def _rows_from_inputs(inputs: dict[str, Any]) -> list[dict[str, Any]]:
         
         # 运行异步采集
         loop = asyncio.get_event_loop()
+        allow_mock = inputs.get("allow_mock_fallback", False)  # T-113c: Mock 回退
         evidences, errors = loop.run_until_complete(
-            registry.fetch_all(sources, keyword=keyword, category=category, limit=limit, **inputs)
+            registry.fetch_all(sources, keyword=keyword, category=category, limit=limit, allow_mock_fallback=allow_mock, **inputs)
         )
         
         if not evidences and errors:
@@ -219,6 +220,7 @@ def _project_feasibility(context: SkillContext, inputs: dict[str, Any]) -> dict[
             "opportunity_score": candidate.get("opportunity_score"),
             "url": candidate.get("url"),  # T-112: 传递 URL 供 sources 使用
             "platform": candidate.get("platform"),  # T-112: 传递平台供 sources 使用
+            "evidence_type": candidate.get("evidence_type"),  # T-113c: 传递 evidence_type
         }
         if provider.provider == "mock":
             card = {
@@ -269,7 +271,8 @@ def _project_feasibility(context: SkillContext, inputs: dict[str, Any]) -> dict[
             sources.append({
                 'title': proj['title'],
                 'origin': proj.get('platform', 'unknown'),
-                'url': proj.get('url')
+                'url': proj.get('url'),
+                'evidence_type': proj.get('evidence_type', 'unknown')  # T-113c: 传递 evidence_type
             })
     
     # 如果没有有效的 findings，使用候选商品的标题

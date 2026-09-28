@@ -10,7 +10,15 @@ from skill_runtime.base import SkillContext, SkillDefinition
 
 
 def _mock_report(title: str, findings: list, risks: list, sources: list) -> str:
-    lines = [f"# {title}", "", "## 一、核心发现"]
+    # T-113c: 检测是否包含 Mock 数据
+    has_mock = any(isinstance(s, dict) and s.get('origin') == 'mock' for s in sources)
+    
+    lines = [f"# {title}", ""]
+    
+    if has_mock:
+        lines += ["⚠️ **本报告包含模拟数据（真实数据源全部失败）**", ""]
+    
+    lines += ["## 一、核心发现"]
     lines += [f"{index + 1}. {item}" for index, item in enumerate(findings)] or ["1. 暂无可用发现。"]
     lines += ["", "## 二、风险与限制"]
     lines += [f"- {item}" for item in risks] or ["- 暂无记录。"]

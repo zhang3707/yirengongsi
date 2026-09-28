@@ -372,6 +372,61 @@ class ManualImportSource:
         return int(self._parse_float(value))
 
 
+# ---------- Mock Data Source (T-113c) ----------
+
+class MockDataSource:
+    """Mock 数据源（兜底用，必须明确标注 evidence_type="mock"）"""
+    
+    name = "mock"
+    
+    async def fetch(
+        self,
+        keyword: str,
+        category: str | None = None,
+        limit: int = 50,
+        **kwargs: Any
+    ) -> list[MarketEvidence]:
+        """
+        生成模拟数据（仅在所有真实数据源失败时使用）。
+        
+        必须明确标注 evidence_type="mock"，并在报告中醒目标注。
+        """
+        import random
+        
+        # 生成 10-20 条模拟数据
+        count = min(random.randint(10, 20), limit)
+        evidences: list[MarketEvidence] = []
+        
+        for i in range(count):
+            price = round(random.uniform(9.9, 99.9), 2)
+            sales = random.randint(100, 5000)
+            reviews = random.randint(50, int(sales * 0.6))
+            
+            evidences.append(MarketEvidence(
+                source="mock",
+                evidence_type="mock",  # ← 明确标注
+                product=ProductInfo(
+                    name=f"Mock商品-{keyword}-{i+1}",
+                    price=price,
+                    category=category or "未分类",
+                    url=f"https://mock.example.com/item/{i+1}",
+                    shop=f"Mock店铺{i+1}",
+                    platform="mock"
+                ),
+                metrics=ProductMetrics(
+                    sales=sales,
+                    reviews=reviews,
+                    rating=round(random.uniform(3.5, 5.0), 1),
+                ),
+                raw_evidence=RawEvidence(
+                    url=f"https://mock.example.com/item/{i+1}",
+                )
+            ))
+        
+        logger.warning(f"MockDataSource generated {len(evidences)} mock evidences for keyword={keyword!r}")
+        return evidences
+
+
 # ---------- Auto-register Sources ----------
 
 def _auto_register():
@@ -379,7 +434,8 @@ def _auto_register():
     register_source(TaobaoBrowserSource())
     register_source(PddBrowserSource())
     register_source(ManualImportSource())
-    logger.info("Auto-registered 3 market data sources: taobao, pdd, manual_import")
+    register_source(MockDataSource())  # T-113c: Mock 兜底
+    logger.info("Auto-registered 4 market data sources: taobao, pdd, manual_import, mock")
 
 
 # 模块导入时自动注册

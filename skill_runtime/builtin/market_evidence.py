@@ -58,8 +58,8 @@ class RawEvidence:
 @dataclass
 class MarketEvidence:
     """市场证据统一模型"""
-    source: str                      # 数据源标识（taobao/pdd/1688/google_trends/reddit/manual_import）
-    evidence_type: str               # observed | estimated | api | manual
+    source: str                      # 数据源标识（taobao/pdd/1688/google_trends/reddit/manual_import/mock）
+    evidence_type: str               # observed | estimated | api | manual | mock
     product: ProductInfo
     metrics: ProductMetrics
     collected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -150,10 +150,14 @@ class DataSourceRegistry:
         keyword: str,
         category: str | None = None,
         limit: int = 50,
+        allow_mock_fallback: bool = False,
         **kwargs: Any
     ) -> tuple[list[MarketEvidence], list[dict[str, Any]]]:
         """
         从多个数据源获取数据并融合。
+        
+        Args:
+            allow_mock_fallback: 如果所有真实数据源都失败，是否使用 Mock 数据兜底（默认 False）
         
         Returns:
             (evidences, errors): 成功的证据列表 + 失败的错误列表
@@ -190,6 +194,22 @@ class DataSourceRegistry:
                     "code": "UNEXPECTED_ERROR"
                 })
                 logger.error(f"DataSource {source_name} unexpected error: {exc}", exc_info=True)
+        
+        # T-113c: 如果所有真实数据源都失败，且允许 Mock 回退
+        if not all_evidences and allow_mock_fallback:
+            mock_source = self.get("mock")
+            if mock_source:
+                logger.warning("All real sources failed, using mock fallback")
+                try:
+                    mock_evidences = await mock_source.fetch(keyword=keyword, category=category, limit=limit, **kwargs)
+                    all_evidences.extend(mock_evidences)
+                    errors.append({
+                        "source": "system",
+                        "error": "All real sources failed, using mock fallback",
+                        "code": "MOCK_FALLBACK"
+                    })
+                except Exception as exc:
+                    logger.error(f"Mock fallback failed: {exc}")
         
         # 融合：去重 + 合并
         merged = self._merge_evidences(all_evidences)

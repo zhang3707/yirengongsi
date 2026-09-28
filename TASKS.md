@@ -161,3 +161,6 @@
 | 2026-09-27 | T-110 完成 | 控制台表单加入 product_dir / mode / account / dry_run 4 字段（policy_approval 留 API 层，守住安全） commit 91c03f2 |
 | 2026-09-27 | **Local MVP 收口** |
 | 2026-09-27 | **T-113 V1 落地** | Agent 自主采集链 market_research_web（只读+失败语义）；commit 0bb9f69 | 阶段目标 1-4 全部达成；新阶段：让系统自己干活 + 收问题（不开发新功能） | [Phase-Local MVP 关键问题] 控制台无法提交电商发布参数（product_dir/dry_run 等） |
+| 2026-09-28 | T-113a 完成 | Market Evidence Schema + DataSourceRegistry + 3 数据源插件迁移；pytest 43+1；commit 3bc1694 |
+| 2026-09-28 | T-112 完成 | findings/sources 传递管道修复；3 项集成测试；pytest 46+1；commit 7bf41f8 |
+| 2026-09-28 | T-113c 完成 | Mock 回退机制（默认关闭 + 报告醒目标注）；6 项测试；pytest 52+1 |
