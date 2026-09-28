@@ -174,3 +174,15 @@
         b) 后续可评估公开批发页观察（browser-service 只读，同淘宝风控治理规则）
         c) 趋势+社群信号（google_trends/hacker_news）已足够支撑 V1 选品发现闭环
 | 2026-09-28 | **T-115 端到端闭环** | 真实任务 task_d58a7f0ec363 5/5 succeeded（Trends+HN → 分析 → 机会 → 项目 → 报告 4207 字符无 mock）；修 7 个真实运行 bug（agent 链/空 keyword/AnyIO loop/kwargs 冲突/趋势评分/signal 字段/注册重复）；pytest 57+1；ruff 清零；commit 50993bb |
+| 2026-09-28 | **T-116 考研真实测试** | 单1「考研」双源 EMPTY_PAGE → 诚实 failed（失败语义实证）；单2「gaokao」HN 单源 succeeded（103s，3281 字符含 发现/风险/线索表）；确认 trends=大盘热搜信号（非长尾关键词库），中文长尾需求正确来源=电商搜索词（淘宝搜索框 flow 已有）；LLM 报告质量符合线索级/结论级区分纪律 |
+- [ ] **T-116 [Pilot 问题池] 考研资料真实测试暴露的数据源定位问题**
+      owner: Codex ｜ 2026-09-28 ｜ 优先级: P2（不影响闭环，影响检索质量）
+      发现：
+        a) Google Trends RSS = 当日大盘热搜，长尾中文关键词（如「考研」）永远查不到 → 应定位为
+           "大盘趋势信号源"，不作为关键词需求库
+        b) HN 英文社区收不到中文长尾词 → 中文关键词需求的正确来源是电商搜索框下拉词/
+           搜索联想词（淘宝搜索框 flow 已在 market_research_web 实证可用）
+        c) 失败语义实证：双源 EMPTY_PAGE → 任务显式 failed，无 mock，符合纪律
+      后续动作（待排期）：
+        - 市场任务提交说明里注明 sources 语义（trends=大盘、hn=英文社区、taobao/pdd=中文长尾）
+        - 考虑新增「电商搜索联想词」采集链（复用淘宝搜索框 flow，只读 observe）
