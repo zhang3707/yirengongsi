@@ -1,0 +1,21 @@
+feat(T-117b): 淘宝翻页 + 懒加载 + tab 复用修复
+
+用户反馈（截图）：
+1. 多 tab 堆积 —— 每轮采集 goto 新开 tab
+2. 没有翻页 —— pages=2 实际只采到第 1 页两次滚动
+
+修复（真实运行验证）：
+a) goto 前先 observe 判断：已在 taobao.com 则复用，不开新 tab
+b) 淘宝是滚动懒加载：每页先连续 scroll 4 次触发本页全部数据，再 observe
+c) 翻页：observe 里找「下一页」button（clickable role/tag 过滤）→ click + policyApproval
+   找不到才 scroll fallback
+d) MAX_RUNTIME_SECONDS 240 → 420（2 页 + 懒加载需要更多时间）
+e) 解析加噪声过滤：剔除 NPS 满意度调查（"对本次搜索体验满意吗"）、
+   "上一页，当前第N页" / "下一页，当前第N页" 导航 metadata
+
+实测（考研资料 pages=2）：
+- 17 rows 真实商品（基本无噪声无重复）
+- 已验证「销量」排序搜索页可见（"35 自动发货" "2000+" 等真实销量）
+- pages=2 采集跨 2 页数据
+
+验证：pytest 57 passed + 1 skipped；ruff 全绿

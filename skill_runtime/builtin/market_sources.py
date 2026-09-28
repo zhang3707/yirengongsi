@@ -44,7 +44,7 @@ class TaobaoBrowserSource:
     _URL_TAOBAO = "https://s.taobao.com/list?q={kw}&sort=sale-desc"
     _SCROLL_DELTA = 900
     _PAGE_GAP_MS = 2500
-    _MAX_RUNTIME_SECONDS = 240
+    _MAX_RUNTIME_SECONDS = 420
     
     _RISK_PATTERNS: list[tuple[re.Pattern[str], str]] = [
         (re.compile(r"访问被拒绝"), "ANTIBOT_BLOCKED"),
@@ -111,8 +111,13 @@ class TaobaoBrowserSource:
         
         try:
             # 淘宝首页（搜索框 flow —— direct URL 会被风控 deny，首页搜索框实证可用）
-            self._post({"request": {"kind": "goto", "url": "https://www.taobao.com"}, "account": account})
-            time.sleep(2)
+            # 避免新开 tab：先 observe 一次；已在 taobao/搜索页则复用
+            pre_obs = self._post({"request": {"kind": "observe", "settle_ms": 600}, "account": account})
+            pre = (pre_obs or {}).get("data") or pre_obs
+            pre_url = str((pre or {}).get("url") or "")
+            if "taobao.com" not in pre_url:
+                self._post({"request": {"kind": "goto", "url": "https://www.taobao.com"}, "account": account})
+                time.sleep(2)
             
             observe1 = self._post({"request": {"kind": "observe", "settle_ms": 1200}, "account": account})
             obs1_data = (observe1 or {}).get("data") or observe1
@@ -177,6 +182,14 @@ class TaobaoBrowserSource:
                     logger.warning(f"Task-level timeout reached ({self._MAX_RUNTIME_SECONDS}s), stopping collection")
                     break
                 
+                # T-117a: 淘宝是滚动懒加载 —— 每页先连续滚几次，把本页数据触发出来再 observe
+                if round_index > 1:
+                    for _ in range(4):
+                        self._post({"request": {"kind": "scroll", "value": self._SCROLL_DELTA}, "account": account})
+                        time.sleep(0.8)
+                        if time.time() - start_time > self._MAX_RUNTIME_SECONDS:
+                            break
+                
                 # 观察页面
                 observe_resp = self._post({
                     "request": {"kind": "observe", "settle_ms": self._PAGE_GAP_MS},
@@ -203,8 +216,16 @@ class TaobaoBrowserSource:
                         }
                     )
                 
-                # 解析商品数据
+                # 解析商品数据（过滤 NPS 满意度调查/页码/导航噪声）
                 rows = parse_search_page(page_text, keyword=keyword)
+                noise_patterns = (
+                    "对本次搜索体验满意吗", "非常满意", "感觉一般", "非常不满意",
+                    "上一页，当前第", "下一页，当前第",
+                )
+                def _is_noise(t, _patterns=tuple(noise_patterns)):
+                    low = str(t or "")
+                    return any(p in low for p in _patterns)
+                rows = [r for r in rows if not _is_noise(r.get("title"))]
                 new_rows = [row for row in rows if row["title"] not in seen_titles]
                 
                 for row in new_rows:
@@ -214,8 +235,32 @@ class TaobaoBrowserSource:
                 if round_index == pages:
                     break
                 
-                # 滚动加载更多
-                self._post({"request": {"kind": "scroll", "value": self._SCROLL_DELTA}, "account": account})
+                # 翻页：优先点击「下一页」button（淘宝分页） —— 再退回首屏 scroll（懒加载补充行）
+                page_tmp = None
+                probe = self._post({"request": {"kind": "observe", "settle_ms": 400}, "account": account})
+                probe_d = (probe or {}).get("data") or probe or {}
+                page_tmp = probe_d.get("page") or {}
+                clicks_probe = page_tmp.get("clickables") or []
+                next_btn = None
+                for a in clicks_probe:
+                    role = str(a.get("role") or "").lower()
+                    tag = str(a.get("tag") or "").lower()
+                    if role not in ("button", "link") and tag not in ("button", "li", "a"):
+                        continue
+                    label = str(a.get("name") or a.get("text") or "")
+                    if ("下一页" in label or "下页" in label or ">" in label) and not a.get("disabled"):
+                        next_btn = a
+                        break
+                if next_btn:
+                    self._post({
+                        "request": {"kind": "click", "target": {"shortId": next_btn.get("id")}},
+                        "account": account,
+                        "policyApproval": {"allowed": True, "token": self._token},
+                    })
+                    time.sleep(3.5)  # 等新页加载
+                else:
+                    self._post({"request": {"kind": "scroll", "value": self._SCROLL_DELTA}, "account": account})
+                    time.sleep(1.5)
         
         finally:
             # 关闭浏览器会话
