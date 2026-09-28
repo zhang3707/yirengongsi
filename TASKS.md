@@ -164,3 +164,4 @@
 | 2026-09-28 | T-113a 完成 | Market Evidence Schema + DataSourceRegistry + 3 数据源插件迁移；pytest 43+1；commit 3bc1694 |
 | 2026-09-28 | T-112 完成 | findings/sources 传递管道修复；3 项集成测试；pytest 46+1；commit 7bf41f8 |
 | 2026-09-28 | T-113c 完成 | Mock 回退机制（默认关闭 + 报告醒目标注）；6 项测试；pytest 52+1 |
+| 2026-09-28 | T-113b 完成 | Google Trends RSS + HN Algolia 真实接入（无风控无 key）；6 源注册；5 项真实网络测试；pytest 57+1 |

@@ -43,6 +43,8 @@ class ProductMetrics:
     rating: float | None = None
     trend_score: float | None = None  # 0-100，来自 Google Trends 等
     engagement: int | None = None     # Reddit upvotes / HN points 等
+    traffic: int | None = None        # Google Trends approx_traffic
+    points: int | None = None         # Hacker News Algolia points
 
 
 @dataclass
