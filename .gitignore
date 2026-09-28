@@ -21,3 +21,5 @@ research/
 
 # 运行时数据（不提交）
 data_*.json
+
+run_*.py
