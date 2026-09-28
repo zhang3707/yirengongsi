@@ -173,3 +173,4 @@
         a) 供给侧价格在「人工确认」环节手工补录（project_feasibility 已预留 supply_source 字段）
         b) 后续可评估公开批发页观察（browser-service 只读，同淘宝风控治理规则）
         c) 趋势+社群信号（google_trends/hacker_news）已足够支撑 V1 选品发现闭环
+| 2026-09-28 | **T-115 端到端闭环** | 真实任务 task_d58a7f0ec363 5/5 succeeded（Trends+HN → 分析 → 机会 → 项目 → 报告 4207 字符无 mock）；修 7 个真实运行 bug（agent 链/空 keyword/AnyIO loop/kwargs 冲突/趋势评分/signal 字段/注册重复）；pytest 57+1；ruff 清零；commit 50993bb |
