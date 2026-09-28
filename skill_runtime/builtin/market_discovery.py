@@ -217,6 +217,8 @@ def _project_feasibility(context: SkillContext, inputs: dict[str, Any]) -> dict[
             "price": candidate.get("price"),
             "sales": candidate.get("sales"),
             "opportunity_score": candidate.get("opportunity_score"),
+            "url": candidate.get("url"),  # T-112: 传递 URL 供 sources 使用
+            "platform": candidate.get("platform"),  # T-112: 传递平台供 sources 使用
         }
         if provider.provider == "mock":
             card = {
@@ -247,8 +249,42 @@ def _project_feasibility(context: SkillContext, inputs: dict[str, Any]) -> dict[
                     )
                 }}
         projects.append(card)
+    
+    # T-112: 转换 projects 为 report 技能期望的 findings/risks/sources 格式
+    findings = []
+    all_risks = []
+    sources = []
+    
+    for proj in projects:
+        # 核心发现：每个项目的问题和解决方案
+        if proj.get('problem') and proj.get('problem') != '见人工复核':
+            findings.append(f"{proj['title']}: {proj.get('problem', '')} (目标用户: {proj.get('target_users', '待确认')})")
+        
+        # 收集所有风险
+        if proj.get('risks') and isinstance(proj['risks'], list):
+            all_risks.extend([f"{proj['title']}: {risk}" for risk in proj['risks']])
+        
+        # 收集来源信息
+        if proj.get('url'):
+            sources.append({
+                'title': proj['title'],
+                'origin': proj.get('platform', 'unknown'),
+                'url': proj.get('url')
+            })
+    
+    # 如果没有有效的 findings，使用候选商品的标题
+    if not findings:
+        findings = [f"{proj['title']} (价格: {proj.get('price', 0)}, 销量: {proj.get('sales', 0)})" for proj in projects[:5]]
+    
+    # 如果没有风险，添加默认提示
+    if not all_risks:
+        all_risks = ['数据来源待验证', '需人工确认版权/合规性']
+    
     return {
         "projects": projects,
+        "findings": findings,
+        "risks": all_risks[:10],  # 最多 10 条
+        "sources": sources[:20],  # 最多 20 条
         "next": "human_confirmation",
         "manual_steps": ["人工逐条确认项目卡片", "确认后 choose product_dir 交 EcomAutopilot dry_run"],
     }
@@ -290,8 +326,8 @@ opportunity_discovery_skill = SkillDefinition(
 project_feasibility_skill = SkillDefinition(
     name="project_feasibility",
     category="market",
-    description="把候选商品转成项目卡片；输出需人工确认的最小步骤。",
+    description="把候选商品转成项目卡片；输出需人工确认的最小步骤 + findings/risks/sources（供 report 使用）。",
     handler=_project_feasibility,
     input_schema={"candidates": "array"},
-    output_schema={"projects": "array", "next": "string"},
+    output_schema={"projects": "array", "findings": "array", "risks": "array", "sources": "array", "next": "string"},
 )

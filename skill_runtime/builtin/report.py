@@ -17,7 +17,8 @@ def _mock_report(title: str, findings: list, risks: list, sources: list) -> str:
     lines += ["", "## 三、资料线索"]
     for source in sources:
         if isinstance(source, dict):
-            lines.append(f"- {source.get('title', '未命名')}（来源：{source.get('origin', 'unknown')}）")
+            url_part = f" [{source.get('url')}]" if source.get('url') else ""
+            lines.append(f"- {source.get('title', '未命名')}（来源：{source.get('origin', 'unknown')}）{url_part}")
     lines += ["", "## 四、人工复核建议", "- 由业务负责人复核结论后交付。"]
     return "\n".join(lines)
 
