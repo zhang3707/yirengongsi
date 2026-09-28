@@ -2,13 +2,12 @@
 
 import pytest
 
-from skill_runtime.builtin.market_evidence import DataSourceError
+from skill_runtime.builtin.market_evidence import get_registry
 from skill_runtime.builtin.market_sources_external import (
     GoogleTrendsSource,
     HackerNewsSource,
     register_external_sources,
 )
-from skill_runtime.builtin.market_evidence import get_registry
 
 
 @pytest.mark.asyncio

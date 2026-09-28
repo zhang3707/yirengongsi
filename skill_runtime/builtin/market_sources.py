@@ -15,7 +15,6 @@ import httpx
 from shared.config import settings
 from shared.logging import get_logger
 from skill_runtime.builtin.market_evidence import (
-    DataSource,
     DataSourceError,
     MarketEvidence,
     ProductInfo,
@@ -189,22 +188,22 @@ class TaobaoBrowserSource:
                 raise DataSourceError(
                     "Browser service authentication failed (check X-Exec-Token)",
                     code="AUTH_ERROR"
-                )
+                ) from exc
             raise DataSourceError(
                 f"Browser service error: {exc.response.status_code}",
                 code="SERVICE_ERROR",
                 evidence={"status_code": exc.response.status_code, "body": exc.response.text[:200]}
-            )
-        except httpx.TimeoutException:
+            ) from exc
+        except httpx.TimeoutException as exc:
             raise DataSourceError(
                 "Browser service timeout (60s)",
                 code="COMMAND_TIMEOUT"
-            )
+            ) from exc
         except Exception as exc:
             raise DataSourceError(
                 f"Browser service unexpected error: {exc}",
                 code="UNEXPECTED_ERROR"
-            )
+            ) from exc
     
     def _detect_risk(self, text: str) -> str | None:
         """检测风控标记"""

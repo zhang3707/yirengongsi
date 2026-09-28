@@ -8,7 +8,6 @@ from skill_runtime.builtin.market_evidence import (
     MarketEvidence,
     ProductInfo,
     ProductMetrics,
-    RawEvidence,
     evidences_to_rows,
     normalize_keyword,
 )

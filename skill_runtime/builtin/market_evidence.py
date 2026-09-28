@@ -12,8 +12,8 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from typing import Any, Protocol
 
 from shared.logging import get_logger
@@ -64,7 +64,7 @@ class MarketEvidence:
     evidence_type: str               # observed | estimated | api | manual | mock
     product: ProductInfo
     metrics: ProductMetrics
-    collected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    collected_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     raw_evidence: RawEvidence | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -85,6 +85,11 @@ class MarketEvidence:
             "source": self.source,
             "evidence_type": self.evidence_type,
             "collected_at": self.collected_at,
+            # T-113b: 信号类指标（trends/HN），供 opportunity_discovery 评分
+            "traffic": self.metrics.traffic,
+            "points": self.metrics.points,
+            "engagement": self.metrics.engagement,
+            "trend_score": self.metrics.trend_score,
         }
 
 
@@ -234,7 +239,7 @@ class DataSourceRegistry:
             by_url.setdefault(url, []).append(ev)
         
         merged: list[MarketEvidence] = []
-        for url, evs in by_url.items():
+        for _url, evs in by_url.items():
             if len(evs) == 1:
                 merged.append(evs[0])
                 continue

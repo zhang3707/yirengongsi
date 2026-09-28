@@ -19,8 +19,9 @@ from typing import Any
 
 from shared.logging import get_logger
 from skill_runtime.base import SkillContext, SkillDefinition
+
 # T-113a: 多源数据采集支持
-from skill_runtime.builtin.market_evidence import get_registry, evidences_to_rows, DataSourceError
+from skill_runtime.builtin.market_evidence import evidences_to_rows, get_registry
 
 logger = get_logger("skill")
 
@@ -34,18 +35,20 @@ def _rows_from_inputs(inputs: dict[str, Any]) -> list[dict[str, Any]]:
     if sources and isinstance(sources, list):
         import asyncio
         keyword = inputs.get("keyword", "")
-        if not keyword:
-            raise ValueError("keyword is required when using sources")
         
         registry = get_registry()
         limit = inputs.get("limit", 50)
         category = inputs.get("category")
         
-        # 运行异步采集
-        loop = asyncio.get_event_loop()
+        # 运行异步采集（AnyIO worker 线程无 event loop，用 asyncio.run 创建新 loop）
         allow_mock = inputs.get("allow_mock_fallback", False)  # T-113c: Mock 回退
-        evidences, errors = loop.run_until_complete(
-            registry.fetch_all(sources, keyword=keyword, category=category, limit=limit, allow_mock_fallback=allow_mock, **inputs)
+        # 排除已显式传参的 key，避免 **kwargs 冲突
+        extra_kwargs = {k: v for k, v in inputs.items() if k not in (
+            "sources", "keyword", "category", "limit",
+            "allow_mock_fallback", "products", "csv", "json", "data_csv", "data_json",
+        )}
+        evidences, errors = asyncio.run(
+            registry.fetch_all(sources, keyword=keyword, category=category, limit=limit, allow_mock_fallback=allow_mock, **extra_kwargs)
         )
         
         if not evidences and errors:
@@ -171,6 +174,21 @@ def _opportunity_discovery(context: SkillContext, inputs: dict[str, Any]) -> dic
         lower = title.lower()
         if any(term in lower for term in _EXCLUDE_TITLE_TERMS):
             rejected.append({**row, "reject_reason": "compliance: disallowed term"})
+            continue
+        # T-113b: 趋势/社群类 evidence 无销量价格，用 signal 评分
+        evidence_type = str(row.get("evidence_type") or "")
+        source_name = str(row.get("source") or "")
+        if evidence_type in ("api", "mock") or source_name in ("google_trends", "hacker_news"):
+            signal = max(
+                float(row.get("traffic") or 0),
+                float(row.get("points") or 0),
+                float(row.get("engagement") or 0),
+            )
+            if signal <= 0:
+                rejected.append({**row, "reject_reason": "trend row missing signal"})
+                continue
+            score = round(min(1.0, signal / 100000.0), 3)
+            candidates.append({**row, "opportunity_score": score})
             continue
         sales = float(row.get("sales") or 0)
         price = float(row.get("price") or 0)
