@@ -186,3 +186,23 @@
       后续动作（待排期）：
         - 市场任务提交说明里注明 sources 语义（trends=大盘、hn=英文社区、taobao/pdd=中文长尾）
         - 考虑新增「电商搜索联想词」采集链（复用淘宝搜索框 flow，只读 observe）
+| 2026-09-28 | **T-117 淘宝考研链路** | TaobaoBrowserSource 搜索框 flow 实测通行：fill(搜索词)→click(tag=button name=搜索)→结果页 observe→parse_search_page 真实 10-14 条商品 rows；agent 端到端 task_14c9b93735aa succeeded（3719 字符真实报告，指出笔记同质化/彩色=认知负荷降低/0.01元=咨询单占位）；修复 errors: bodyTextSample 字段/搜索按钮二次 observe/policyApproval 必带 token/__pycache__ 缓存 |
+- [x] **T-117 淘宝搜索框 flow 真实采集打通（考研资料）**
+      owner: Codex ｜ 2026-09-28 11:15 完成
+      采集实证：淘宝首页 → 搜索框 fill("考研资料") → re-observe → click(tag=button,name=搜索)
+      → s.taobao.com/search 结果页 → observe page.bodyTextSample → parse_search_page
+      产出 10-14 条真实商品（title/price/sales/shop），成功跑 market_research → analysis
+      → opportunity → project_feasibility → report 全 5 步。
+      
+      本轮修复（全部真实运行发现）：
+        a) observe-light 文本在 data.page.bodyTextSample（非 pageView.text）
+        b) 首页搜索按钮 icon-only（无「搜索」文字），需 fill 后二次 observe 抓新 id
+        c) fill/click/press 所有写动作必须带 policyApproval（EcomAutopilot 宪法）
+        d) 搜索按钮选择：优先 tag=button AND name=精确"搜索"，fallback 含「搜索」button
+        e) parse_search_page(page_text, keyword=...签名)（不是 platform）
+        f) __pycache__ 缓存问题 → uvicorn 始终用 -B 启动
+      
+      剩余已知限制：
+        - PRICE_PARSING 有些商品仍少（0.01 咨询单/改价占位），真实价格需详情页二次 click（暂未做）
+        - SALES 字段部分行缺（有些行"人付款"前数字缺失）—— parser 后续可加强
+        - scroll round 间 settle 3s 固定；后续可调为 soft random 3-6s

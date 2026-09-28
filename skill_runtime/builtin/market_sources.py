@@ -29,6 +29,11 @@ logger = get_logger("skill")
 
 # ---------- Taobao Browser Source ----------
 
+def current_page_url(obs_data: dict) -> str:
+    """observe-light data 中取当前 URL（顶层 url）。"""
+    return str((obs_data or {}).get("url") or "")
+
+
 class TaobaoBrowserSource:
     """淘宝浏览器采集源（通过 EcomAutopilot browser-service）"""
     
@@ -105,14 +110,66 @@ class TaobaoBrowserSource:
         self._post({"request": {"kind": "session", "action": "start", "account": account}})
         
         try:
-            # 打开淘宝首页
+            # 淘宝首页（搜索框 flow —— direct URL 会被风控 deny，首页搜索框实证可用）
             self._post({"request": {"kind": "goto", "url": "https://www.taobao.com"}, "account": account})
-            time.sleep(2)  # 等待页面加载
+            time.sleep(2)
             
-            # 搜索关键词
-            search_url = self._URL_TAOBAO.format(kw=keyword)
-            first_url = search_url
-            self._post({"request": {"kind": "goto", "url": search_url}, "account": account})
+            observe1 = self._post({"request": {"kind": "observe", "settle_ms": 1200}, "account": account})
+            obs1_data = (observe1 or {}).get("data") or observe1
+            page1 = obs1_data.get("page") or {}
+            form_controls = page1.get("formControls") or []
+            clickables = page1.get("clickables") or []
+            search_input = None
+            search_btn = None
+            for ctl in form_controls:
+                if str(ctl.get("role") or "").lower() == "combobox" or str(ctl.get("tag") or "").lower() == "input":
+                    search_input = ctl
+                    break
+            for act in clickables:
+                label = str(act.get("name") or act.get("text") or "")
+                if "搜索" in label and search_btn is None:
+                    search_btn = act
+            if not search_input:
+                raise DataSourceError(
+                    "taobao search box not found on home page",
+                    code="EMPTY_PAGE",
+                    evidence={"url": current_page_url(obs1_data), "formControls": len(form_controls)},
+                )
+            approval = {"allowed": True, "token": self._token}
+            self._post({
+                "request": {"kind": "fill",
+                             "target": {"shortId": search_input.get("id")},
+                             "value": keyword},
+                "account": account,
+                "policyApproval": approval,
+            })
+            # fill 后重新 observe 拿最新 search 按钮 id（页面 id 每次轮换）
+            obs2 = self._post({"request": {"kind": "observe", "settle_ms": 500}, "account": account})
+            p2 = ((obs2 or {}).get("data") or obs2 or {}).get("page") or {}
+            clicks2 = p2.get("clickables") or []
+            # 优先 tag=button name=搜索；否则带"搜索"的 link（icon btn）
+            btn = next((a for a in clicks2
+                         if a.get("tag") == "button" and str(a.get("name") or "").strip() == "搜索"), None)
+            if not btn:
+                btn = next((a for a in clicks2
+                             if "搜索" in str(a.get("name") or "") and a.get("tag") == "button"), None)
+            if btn:
+                self._post({
+                    "request": {"kind": "click", "target": {"shortId": btn.get("id")}},
+                    "account": account,
+                    "policyApproval": approval,
+                })
+            else:
+                self._post({
+                    "request": {"kind": "press", "value": "Enter"},
+                    "account": account,
+                    "policyApproval": approval,
+                })
+            time.sleep(3)  # 等搜索结果页加载（page gap 作为 settle）
+            # 搜索动作后再 observe 拿结果页 URL
+            post_obs = self._post({"request": {"kind": "observe", "settle_ms": 800}, "account": account})
+            post_data = (post_obs or {}).get("data") or post_obs
+            first_url = current_page_url(post_data)
             
             for round_index in range(1, pages + 1):
                 # 检查任务级冷却
@@ -125,11 +182,13 @@ class TaobaoBrowserSource:
                     "request": {"kind": "observe", "settle_ms": self._PAGE_GAP_MS},
                     "account": account
                 })
+                data = (observe_resp or {}).get("data") or observe_resp  # /command 包了一层 data
                 
-                # 风控检测
-                page_text = observe_resp.get("pageView", {}).get("text", "")
-                page_title = observe_resp.get("pageView", {}).get("title", "")
-                current_url = observe_resp.get("pageView", {}).get("url", "")
+                # 风控检测：文本在 data.page.bodyTextSample（observe-light 格式）
+                page_obj = data.get("page") or {}
+                page_text = str(page_obj.get("bodyTextSample") or "")
+                page_title = str(data.get("title") or "")
+                current_url = str(data.get("url") or "")
                 
                 risk_code = self._detect_risk(page_text + " " + page_title + " " + current_url)
                 if risk_code:
@@ -145,7 +204,7 @@ class TaobaoBrowserSource:
                     )
                 
                 # 解析商品数据
-                rows = parse_search_page(page_text, platform="taobao")
+                rows = parse_search_page(page_text, keyword=keyword)
                 new_rows = [row for row in rows if row["title"] not in seen_titles]
                 
                 for row in new_rows:
