@@ -165,3 +165,11 @@
 | 2026-09-28 | T-112 完成 | findings/sources 传递管道修复；3 项集成测试；pytest 46+1；commit 7bf41f8 |
 | 2026-09-28 | T-113c 完成 | Mock 回退机制（默认关闭 + 报告醒目标注）；6 项测试；pytest 52+1 |
 | 2026-09-28 | T-113b 完成 | Google Trends RSS + HN Algolia 真实接入（无风控无 key）；6 源注册；5 项真实网络测试；pytest 57+1 |
+- [!] **T-114 1688 开放平台 API 数据源接入**
+      owner: 用户（申请 API key）｜ 状态: blocked ｜ blocked_since: 2026-09-28
+      blocked_reason: 用户当前无法申请到 1688 开放平台 API 凭证（需要企业资质审核）。
+      needs: 用户提供 1688 API key（app_key + app_secret），或确认放弃此数据源改用替代方案。
+      替代方案（不阻塞主线）：
+        a) 供给侧价格在「人工确认」环节手工补录（project_feasibility 已预留 supply_source 字段）
+        b) 后续可评估公开批发页观察（browser-service 只读，同淘宝风控治理规则）
+        c) 趋势+社群信号（google_trends/hacker_news）已足够支撑 V1 选品发现闭环
